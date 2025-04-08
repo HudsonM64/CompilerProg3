@@ -11,9 +11,9 @@ public class Main {
       Parse parse = new Parse(filename);
 
 
-      /* We are not giving out the print code, therefore
-       * this is being commented out. The parser should run
-       * without any trouble, it just wont print output.
+      // We are not giving out the print code, therefore
+        //this is being commented out. The parser should run
+        //without any trouble, it just wont print output.
 
 
       PrintWriter writer = new PrintWriter(System.out);
@@ -22,7 +22,6 @@ public class Main {
       writer.println();
       writer.flush();
 
-      */
     }
   }
 
