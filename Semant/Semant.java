@@ -4,7 +4,7 @@ import Translate.Exp;
 import java.util.Hashtable;
 //import Absyn.*;
 import ErrorMsg.ErrorMsg;
-import Types.Type;
+import Types.*;
 //import Temp.*;
 //import Symbol.*;
 
@@ -149,8 +149,8 @@ public class Semant {
       return new ExpTy(null, (Type)VOID);
       if (e instanceof Absyn.VarExp) {
         result = transExp((Absyn.VarExp)e);
-      } else if (e instanceof Absyn.NilExp) {
-        result = transExp((Absyn.NilExp)e);
+      } else if (e instanceof NilExp) {
+        result = transExp((NilExp)e);
       } else if (e instanceof Absyn.Int) {
         result = transExp((Absyn.Int)e);
       } else if (e instanceof Absyn.StringLit) {
@@ -188,7 +188,7 @@ public class Semant {
     return transVar(e.var);
   }
 
-  ExpTy transExp(Absyn.NilExp e) {
+  ExpTy transExp(NilExp e) {
     return new ExpTy(null, (Type)NIL);
   }
 
