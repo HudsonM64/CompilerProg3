@@ -224,7 +224,7 @@ public class Print {
 
    void prExp(Int e, int d) {
       this.say("Int(");
-      this.say(e.value);
+      this.say(e.val);
       this.say(")");
    }
 
@@ -302,7 +302,7 @@ public class Print {
 
    void prExp(StringLit e, int d) {
       this.say("StringLit(");
-      this.say(e.value);
+      this.say(e.val);
       this.say(")");
    }
 

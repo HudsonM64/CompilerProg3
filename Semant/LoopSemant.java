@@ -5,8 +5,8 @@ import Translate.Exp;
 import Translate.Level;
 
 class LoopSemant extends Semant {
-   LoopSemant(Env e, Level l) {
-      super(e, l);
+   LoopSemant(Env e) {
+      super(e);
    }
 
    ExpTy transExp(BreakExp e) {

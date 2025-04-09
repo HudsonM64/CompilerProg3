@@ -1,8 +1,11 @@
 package Semant;
 
+import Types.Type;
+
 public class VarEntry extends Entry {
-  public Types.Type ty;
-  VarEntry(Types.Type t) {
-    ty = t;
-  }
+   public Type ty;
+
+   VarEntry(Type t) {
+      this.ty = t;
+   }
 }

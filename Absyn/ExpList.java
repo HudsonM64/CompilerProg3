@@ -1,18 +1,11 @@
 package Absyn;
-import java.util.ArrayList;
-import Symbol.Symbol;
 
-public class ExpList extends Exp{
-    public ArrayList<Exp> exps;
+public class ExpList {
+   public Exp head;
+   public ExpList tail;
 
-    public ExpList(int p) {
-        pos=p;
-        this.exps = new ArrayList<Exp>();
-    }
-
-    public void add(Exp e) {
-        this.exps.add(e);
-    }
-
-
+   public ExpList(Exp h, ExpList t) {
+      this.head = h;
+      this.tail = t;
+   }
 }

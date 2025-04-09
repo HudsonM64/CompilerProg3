@@ -26,7 +26,7 @@ public class Level {
       this.formals = this.frameFormals.tail;
    }
 
-   private AccessList allocFormals(Frame.AccessList formals) {
+   private AccessList allocFormals(AccessList formals) {
       return formals == null ? null : new AccessList(new Access(this, formals.head), this.allocFormals(formals.tail));
    }
 
