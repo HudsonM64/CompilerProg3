@@ -7,7 +7,7 @@ public class Main {
     for (int i = 0; i < argv.length; ++i) {
       String filename = argv[i];
       if (argv.length > 1)
-	System.out.println("***Processing: " + filename);
+	      System.out.println("***Processing: " + filename);
       Parse parse = new Parse(filename);
 
 
@@ -18,7 +18,7 @@ public class Main {
 
       PrintWriter writer = new PrintWriter(System.out);
       Absyn.Print printer = new Absyn.Print(writer);
-      printer.prExp(parse.absyn, 0);
+      printer.prExp((Absyn.Exp)parse.absyn, 0);
       writer.println();
       writer.flush();
 

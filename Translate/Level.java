@@ -1,6 +1,7 @@
 package Translate;
 
 import Frame.Frame;
+import Frame.AccessList;
 import Symbol.Symbol;
 import Temp.Label;
 import Util.BoolList;
@@ -8,8 +9,8 @@ import Util.BoolList;
 public class Level {
    Level parent;
    Frame frame;
-   public AccessList formals;
-   public AccessList frameFormals;
+   public Translate.AccessList formals;
+   public Translate.AccessList frameFormals;
 
    public Level(Frame f) {
       this.frame = f;
@@ -26,8 +27,9 @@ public class Level {
       this.formals = this.frameFormals.tail;
    }
 
-   private AccessList allocFormals(AccessList formals) {
-      return formals == null ? null : new AccessList(new Access(this, formals.head), this.allocFormals(formals.tail));
+   private Translate.AccessList allocFormals(AccessList formals) {
+      if (formals == null) return null;
+      return new Translate.AccessList(new Access(this, formals.head), allocFormals(formals.tail));
    }
 
    public Access allocLocal(boolean escape) {

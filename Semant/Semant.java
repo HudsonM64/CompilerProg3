@@ -42,12 +42,12 @@ public class Semant {
       error(pos, "Unorderable type");
   }
 
-  private void putTypeFields(Types.RECORD f, Translate.AccessList a) {
-    if (f != null) {
-       this.env.venv.put(f.fieldName, new VarEntry(f.fieldType));
-       this.putTypeFields(f.tail, a.tail);
-    }
- }
+  private void putTypeFields(RECORD f) {
+    if (f == null)
+      return; 
+    env.venv.put(f.fieldName, new VarEntry(f.fieldType));
+    putTypeFields(f.tail);
+  }
 
   private void transArgs(int epos, RECORD formal, Absyn.ExpList args) {
     if (formal == null) {
@@ -79,23 +79,18 @@ public class Semant {
   Exp transDec(Absyn.VarDeclaration d) {
     ExpTy init = transExp(d.init);
     Type type;
-    if (d.typ != null) {
-      // user-specified type
-      NAME name = (NAME) env.tenv.get(d.typ);
-      if (name == null) {
-        error(d.pos, "Undefined type " + d.typ);
-        type = VOID;
+    if (d.typ == null) {
+      if (init.ty.coerceTo(NIL)) {
+            this.error(d.pos, "record type required");
+         }
+
+         type = init.ty;
       } else {
-        type = name.actual();
-        if (!init.ty.coerceTo(type))
-          error(d.pos, "Initializer type does not match declared type.");
+         type = this.transTy(d.typ);
+         if (!init.ty.coerceTo(type)) {
+            this.error(d.pos, "assignment type mismatch");
+         }
       }
-    } else {
-      // infer type from initializer
-      if (init.ty instanceof NIL)
-        error(d.pos, "Cannot assign NIL without declared type.");
-      type = init.ty;
-    }
   
     d.entry = new VarEntry(type);
     env.venv.put(d.name, d.entry);
@@ -139,7 +134,7 @@ public class Semant {
 
     for (Absyn.FunctionDeclaration f = d; f != null; f = f.next) {
       env.venv.beginScope();
-      putTypeFields(f.entry.formals, f.entry.formals);
+      putTypeFields(f.entry.formals);
       Semant fun = new Semant(env);
       ExpTy body = fun.transExp(f.body);
       if(!body.ty.coerceTo(f.entry.result))
@@ -468,57 +463,70 @@ public class Semant {
     return (Type)VOID;
   }
 
-  ExpTy transVar(Absyn.VarDeclaration v) {
-    // Handle VarDeclaration specifically
-    if (v instanceof Absyn.VarDeclaration) {
-        Entry x = (Entry) env.venv.get(v.name);
-        if (x instanceof VarEntry) {
-            VarEntry ent = (VarEntry) x;
-            return new ExpTy(null, ent.ty);
-        } else {
-            error(v.pos, "Undefined variable.");
-            return new ExpTy(null, INT); // Default return
-        }
-    }
-    // Handle FieldList
-    if (v instanceof Absyn.FieldList) {
-        return transVar((Absyn.FieldList) v);
-    }
-    // Handle ArrayExpression
-    if (v instanceof Absyn.ArrayExpression) {
-        return transVar((Absyn.ArrayExpression) v);
-    }
+  ExpTy transVar(Absyn.Var v) {
+    if (v instanceof Absyn.SimpleVar)
+      return transVar((Absyn.SimpleVar)v); 
+    if (v instanceof Absyn.FieldVar)
+      return transVar((Absyn.FieldVar)v); 
+    if (v instanceof Absyn.SubscriptVar)
+      return transVar((Absyn.SubscriptVar)v); 
     throw new Error("Semant.transVar");
-}
-
+  }
   
-ExpTy transVar(Absyn.FieldList v) {
-  ExpTy var = transVar(v.var); // Recursively check the base variable
-  Type actual = var.ty.actual();
-  if (actual instanceof Absyn.StructMember) {
-      for (Absyn.StructMember field = (Absyn.StructMember) actual; field != null; field = field.tail) {
-          if (field.fieldName.equals(v.field)) { // Compare field names
-              return new ExpTy(null, field.fieldType);
-          }
+  ExpTy transVar(Absyn.SimpleVar e) {
+    Entry x = (Entry)env.venv.get(e.name);
+      if (x instanceof VarEntry) {
+        VarEntry ent = (VarEntry)x;
+        return new ExpTy(null, ent.ty);
       }
-      error(v.pos, "Undeclared field: " + v.field);
-  } else {
-      error(v.var.pos, "Absyn.StructMember required.");
+      else {
+        error(e.pos, "undefined variable");
+        return new ExpTy(null, INT);
+      }
+    
+    
   }
-  return new ExpTy(null, VOID); // Default return for error cases
-}
+  
+  ExpTy transVar(Absyn.FieldVar v) {
+    ExpTy var = transVar(v.var);
+    Type actual = var.ty.actual();
+    if (actual instanceof RECORD) {
+      for(RECORD field = (RECORD)actual; field != null; field = field.tail) {
+        if (field.fieldName == v.field)
+          return new ExpTy(null, field.fieldType);
+      }
+        error(v.pos, "undeclared field: " + v.field);
+    } else {
+      error(v.var.pos, "record required");
+    }
+    return new ExpTy(null, VOID);
 
-ExpTy transVar(Absyn.ArrayExpression v) {
-  ExpTy var = transVar(v.var); // Check the base variable
-  ExpTy index = transExp(v.index); // Get the index expression
-  checkInt(index, v.index.pos); // Ensure it's an integer
-  Type actual = var.ty.actual();
-  if (actual instanceof ARRAY) {
-      ARRAY array = (ARRAY) actual;
-      return new ExpTy(null, array.element); // Return the type of the array element
+
   }
-  error(v.var.pos, "Array required.");
-  return new ExpTy(null, VOID); // Default return for error cases
-}
+  
+  ExpTy transVar(Absyn.SubscriptVar v) {
+    ExpTy var = transVar(v.var);
+    ExpTy index = transExp(v.index);
+    checkInt(index, v.index.pos);
+    Type actual = var.ty.actual();
+    if (actual instanceof ARRAY) {
+      ARRAY array = (ARRAY)actual;
+      return new ExpTy(null, array.element);
+    } 
+    error(v.var.pos, "array required");
+    return new ExpTy(null, (Type)VOID);
+  }
 
+  ExpTy transVar(Absyn.Var v, boolean lhs) {
+    if (v instanceof Absyn.SimpleVar) {
+       return this.transVar((Absyn.SimpleVar)v, lhs);
+    } else if (v instanceof Absyn.FieldVar) {
+       return this.transVar((Absyn.FieldVar)v);
+    } else if (v instanceof Absyn.SubscriptVar) {
+       return this.transVar((Absyn.SubscriptVar)v);
+    } else {
+       throw new Error("Semant.transVar");
+    }
+ }
+  
 }

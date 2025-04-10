@@ -121,84 +121,84 @@ public class Print {
       this.say(")");
    }
 
-   void prExp(ArrayExpression e, int d) {
-      this.say("ArrayExpression(");
-      this.say(e.typ.toString());
-      this.sayln(",");
-      this.prExp(e.size, d + 1);
-      this.sayln(",");
-      this.prExp(e.init, d + 1);
-      this.say(")");
-   }
-
-   void prExp(AssignmentExpression e, int d) {
-      this.sayln("AssignmentExpression(");
-      this.prVar(e.var, d + 1);
-      this.sayln(",");
-      this.prExp(e.exp, d + 1);
-      this.say(")");
-   }
-
-   void prExp(BreakExp e, int d) {
-      this.say("BreakExp()");
-   }
-
-   void prExp(CallExp e, int d) {
-      this.say("CallExp(");
-      this.say(e.func.toString());
-      this.sayln(",");
-      this.prExplist(e.args, d + 1);
-      this.say(")");
-   }
-
-   public void prExp(Exp e, int d) {
-      this.indent(d);
-      if (e instanceof OpExp) {
-         this.prExp((OpExp)e, d);
-      } else if (e instanceof VarExp) {
-         this.prExp((VarExp)e, d);
-      } else if (e instanceof NilExp) {
-         this.prExp((NilExp)e, d);
-      } else if (e instanceof Int) {
-         this.prExp((Int)e, d);
-      } else if (e instanceof StringLit) {
-         this.prExp((StringLit)e, d);
-      } else if (e instanceof CallExp) {
-         this.prExp((CallExp)e, d);
-      } else if (e instanceof RecordExp) {
-         this.prExp((RecordExp)e, d);
-      } else if (e instanceof SeqExp) {
-         this.prExp((SeqExp)e, d);
-      } else if (e instanceof AssignmentExpression) {
-         this.prExp((AssignmentExpression)e, d);
-      } else if (e instanceof IfExp) {
-         this.prExp((IfExp)e, d);
-      } else if (e instanceof WhileExp) {
-         this.prExp((WhileExp)e, d);
-      } else if (e instanceof ForExp) {
-         this.prExp((ForExp)e, d);
-      } else if (e instanceof BreakExp) {
-         this.prExp((BreakExp)e, d);
-      } else if (e instanceof LetExp) {
-         this.prExp((LetExp)e, d);
-      } else {
-         if (!(e instanceof ArrayExpression)) {
-            throw new Error("Print.prExp");
-         }
-
-         this.prExp((ArrayExpression)e, d);
+   void prExp(OpExp e, int d) {
+      sayln("OpExp(");
+      indent(d+1); 
+      switch(e.oper) {
+      case OpExp.PLUS: say("PLUS"); break;
+      case OpExp.MINUS: say("MINUS"); break;
+      case OpExp.MUL: say("MUL"); break;
+      case OpExp.DIV: say("DIV"); break;
+      case OpExp.EQ: say("EQ"); break;
+      case OpExp.NE: say("NE"); break;
+      case OpExp.LT: say("LT"); break;
+      case OpExp.LE: say("LE"); break;
+      case OpExp.GT: say("GT"); break;
+      case OpExp.GE: say("GE"); break;
+      default:
+        throw new Error("Print.prExp.OpExp");
       }
-
-      if (e.type != null) {
-         this.sayln("");
-         this.indent(d);
-         this.say(":");
-         this.types.prType(e.type, d + 1);
+      sayln(",");
+      prExp(e.left, d+1); sayln(",");
+      prExp(e.right, d+1); say(")");
+    }
+  
+    void prExp(VarExp e, int d) {
+      sayln("VarExp("); prVar(e.var, d+1);
+      say(")");
+    }
+  
+    void prExp(NilExp e, int d) {
+      say("NilExp()");
+    }
+  
+    void prExp(Int e, int d) {
+      say("Int("); say(e.val); say(")");
+    }
+  
+    void prExp(StringLit e, int d) {
+      say("StringLit("); say(e.val); say(")");
+    }
+  
+    void prExp(CallExp e, int d) {
+      say("CallExp("); say(e.func.toString()); sayln(",");
+      prExplist(e.args, d+1); say(")");
+    }
+  
+    void prExp(RecordExp e, int d) {
+      say("RecordExp("); say(e.typ.toString());  sayln(",");
+      prFieldExpList(e.fields, d+1); say(")");
+    }
+  
+    void prExp(SeqExp e, int d) {
+      sayln("SeqExp(");
+      prExplist(e.list, d+1); say(")");
+    }
+  
+    void prExp(AssignmentExpression e, int d) {
+      sayln("AssignExp(");
+      prVar(e.var, d+1); sayln(",");
+      prExp(e.exp, d+1); say(")");
+    }
+    
+    void prExp(IfExp e, int d) {
+      sayln("IfExp(");
+      prExp(e.test, d+1); sayln(",");
+      prExp(e.thenclause, d+1);
+      if (e.elseclause!=null) { /* else is optional */
+        sayln(",");
+        prExp(e.elseclause, d+1);
       }
-
-   }
-
-   void prExp(ForExp e, int d) {
+      say(")");
+    }
+  
+    void prExp(WhileExp e, int d) {
+      sayln("WhileExp(");
+      prExp(e.test, d+1); sayln(",");
+      prExp(e.body, d+1); say(")");
+    }
+  
+    void prExp(ForExp e, int d) {
       this.sayln("ForExp(");
       this.indent(d + 1);
       this.prDec(e.var, d + 1);
@@ -207,118 +207,48 @@ public class Print {
       this.sayln(",");
       this.prExp(e.body, d + 1);
       this.say(")");
-   }
-
-   void prExp(IfExp e, int d) {
-      this.sayln("IfExp(");
-      this.prExp(e.test, d + 1);
-      this.sayln(",");
-      this.prExp(e.thenclause, d + 1);
-      if (e.elseclause != null) {
-         this.sayln(",");
-         this.prExp(e.elseclause, d + 1);
+    }
+  
+    void prExp(BreakExp e, int d) {
+      say("BreakExp()");
+    }
+  
+    void prExp(LetExp e, int d) {
+      say("LetExp("); sayln("");
+      prDecList(e.decs, d+1); sayln(",");
+      prExp(e.body, d+1); say(")");
+    }
+  
+    void prExp(ArrayExpression e, int d) {
+      say("ArrayExp("); say(e.typ.toString()); sayln(",");
+      prExp(e.size, d+1); sayln(",");
+      prExp(e.init, d+1); say(")");
+    }
+  
+    /* Print Exp class types. Indent d spaces. */
+    public void prExp(Exp e, int d) {
+      indent(d);
+      if (e instanceof OpExp) prExp((OpExp)e, d);
+      else if (e instanceof VarExp) prExp((VarExp) e, d);
+      else if (e instanceof NilExp) prExp((NilExp) e, d);
+      else if (e instanceof Int) prExp((Int) e, d);
+      else if (e instanceof StringLit) prExp((StringLit) e, d);
+      else if (e instanceof CallExp) prExp((CallExp) e, d);
+      else if (e instanceof RecordExp) prExp((RecordExp) e, d);
+      else if (e instanceof SeqExp) prExp((SeqExp) e, d);
+      else if (e instanceof AssignmentExpression) prExp((AssignmentExpression) e, d);
+      else if (e instanceof IfExp) prExp((IfExp) e, d);
+      else if (e instanceof WhileExp) prExp((WhileExp) e, d);
+      else if (e instanceof ForExp) prExp((ForExp) e, d);
+      else if (e instanceof BreakExp) prExp((BreakExp) e, d);
+      else if (e instanceof LetExp) prExp((LetExp) e, d);
+      else if (e instanceof ArrayExpression) prExp((ArrayExpression) e, d);
+      else throw new Error("Print.prExp");
+      if (e.type != null) {
+        sayln(""); indent(d); say(":"); types.prType(e.type, d+1);
       }
-
-      this.say(")");
-   }
-
-   void prExp(Int e, int d) {
-      this.say("Int(");
-      this.say(e.val);
-      this.say(")");
-   }
-
-   void prExp(LetExp e, int d) {
-      this.say("LetExp(");
-      this.sayln("");
-      this.prDecList(e.decs, d + 1);
-      this.sayln(",");
-      this.prExp(e.body, d + 1);
-      this.say(")");
-   }
-
-   void prExp(NilExp e, int d) {
-      this.say("NilExp()");
-   }
-
-   void prExp(OpExp e, int d) {
-      this.sayln("OpExp(");
-      this.indent(d + 1);
-      switch(e.oper) {
-      case 0:
-         this.say("PLUS");
-         break;
-      case 1:
-         this.say("MINUS");
-         break;
-      case 2:
-         this.say("MUL");
-         break;
-      case 3:
-         this.say("DIV");
-         break;
-      case 4:
-         this.say("EQ");
-         break;
-      case 5:
-         this.say("NE");
-         break;
-      case 6:
-         this.say("LT");
-         break;
-      case 7:
-         this.say("LE");
-         break;
-      case 8:
-         this.say("GT");
-         break;
-      case 9:
-         this.say("GE");
-         break;
-      default:
-         throw new Error("Print.prExp.OpExp");
-      }
-
-      this.sayln(",");
-      this.prExp(e.left, d + 1);
-      this.sayln(",");
-      this.prExp(e.right, d + 1);
-      this.say(")");
-   }
-
-   void prExp(RecordExp e, int d) {
-      this.say("RecordExp(");
-      this.say(e.typ.toString());
-      this.sayln(",");
-      this.prFieldExpList(e.fields, d + 1);
-      this.say(")");
-   }
-
-   void prExp(SeqExp e, int d) {
-      this.sayln("SeqExp(");
-      this.prExplist(e.list, d + 1);
-      this.say(")");
-   }
-
-   void prExp(StringLit e, int d) {
-      this.say("StringLit(");
-      this.say(e.val);
-      this.say(")");
-   }
-
-   void prExp(VarExp e, int d) {
-      this.sayln("VarExp(");
-      this.prVar(e.var, d + 1);
-      this.say(")");
-   }
-
-   void prExp(WhileExp e, int d) {
-      this.sayln("WhileExp(");
-      this.prExp(e.test, d + 1);
-      this.sayln(",");
-      this.prExp(e.body, d + 1);
-      this.say(")");
-   }
+    }
+  
 
    void prExplist(ExpList e, int d) {
       this.indent(d);
